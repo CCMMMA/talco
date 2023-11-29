@@ -295,6 +295,22 @@
                             tr.style.backgroundColor = ''; // Reset background color
                         });
 
+                        tr.addEventListener('click', function () {
+                            fetch('/getTimeSeries/' + measurement.id)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! Status: ${response.status}`);
+                                }
+                                return response.blob();
+                            })
+                            .then(blob => {
+                                console.log(blob);
+                            })
+                            .catch(error => {
+                                console.error('Error fetching data:', error);
+                            });;
+                        });
+
                         /*
                         tr.addEventListener('click', function () {
                             const existingContent = tr.nextElementSibling;
