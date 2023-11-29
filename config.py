@@ -8,7 +8,7 @@ class Config(object):
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    WCM3_URL = 'http://193.205.230.6/opendap/wcm3/d03/archive/'
+    WCM3_URL = os.environ.get('WCM3_URL') or 'http://193.205.230.6/opendap/wcm3/d03/archive/'
     hours = 168
     delta_lat = 0.0013659036107000276
     delta_long = 0.0017988219935232432

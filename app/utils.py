@@ -12,10 +12,12 @@ def get_index_lat_long(min_lat, max_lat, min_long, max_long):
     return index_min_lat, index_max_lat, index_min_long, index_max_long
 
 
-def getConc(url, index_min_lat, index_min_long, area_poly):
+def getConc(url, index_min_lat, index_min_long, index_max_lat, index_max_long, area_poly):
     try:
         dataset = netCDF4.Dataset(url)
-        concentration = dataset['conc'][0][0]
+        lat_indices = range(index_min_lat, index_max_lat + 1)
+        lon_indices = range(index_min_long, index_max_long + 1)
+        concentration = dataset['conc'][0, 0, lat_indices, lon_indices]
 
         values = []
         for i in range(0, len(concentration)):

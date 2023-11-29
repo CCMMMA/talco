@@ -198,10 +198,9 @@ def calculateTimeseries(measurement_id, new_uuid, execution_status, total):
                     month = f'{reference_hour.month:02}'
                     day = f'{reference_hour.day:02}'
 
-                    url = f'{Config.WCM3_URL}{year}/{month}/{day}/wcm3_d03_{formatted_hour}.nc' \
-                          f'?conc[0:1:0][0:1:1][{index_min_lat}:1:{index_max_lat}][{index_min_long}:1:{index_max_long}]'
+                    url = f'{Config.WCM3_URL}{year}/{month}/{day}/wcm3_d03_{formatted_hour}.nc'
 
-                    value = getConc(url, index_min_lat, index_min_long, area_poly)
+                    value = getConc(url, index_min_lat, index_min_long, index_max_lat, index_max_long, area_poly)
 
                     data.append({
                         "time": reference_hour.isoformat(),
