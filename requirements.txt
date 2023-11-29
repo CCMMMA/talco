@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+flask_migrate
+psycopg2
+psycopg2-binary
+python-dotenv
+pandas
+xlrd
+openpyxl
+shapely
+netCDF4
+matplotlib
