@@ -275,42 +275,18 @@ def createTimeseries():
 def getTimeSeries(id: int):
     measurement = Measurements.query.get(id)
 
-    # Sample data (replace this with your own time series data)
     def get_timeseries_data():
-        times = []
-        values = []
-
+        data = []
         if measurement.timeseries:
             values = measurement.timeseries.values
-            times = [entry['time'] for entry in values]
-            values = [entry['value'] for entry in values]
+            for entry in values:
+                data.append({
+                    "label": entry['time'],
+                    "y": entry['value']
+                })
 
-        df = pd.DataFrame({'time': times, 'values': values})
-        return df
+        return data
 
-    # Function to generate a time series plot
-    def generate_plot(data):
-        plt.plot(data['time'], data['values'])
-        plt.xlabel('Time [h]')
-        plt.ylabel('number of particles')
-        plt.title(measurement.site_name)
-        plt.grid(False)
-        plt.tight_layout()
-
-    # Generate sample data (replace this with your own data retrieval logic)
     timeseries = get_timeseries_data()
 
-    # Generate the plot
-    generate_plot(timeseries)
-
-    # Save the plot to a BytesIO object
-    image_stream = BytesIO()
-    plt.savefig(image_stream, format='png')
-    image_stream.seek(0)
-
-    # Clear the plot to avoid memory leaks
-    plt.clf()
-    plt.close()
-
-    # Return the plot as an image response
-    return send_file(image_stream, mimetype='image/png')
+    return jsonify(timeseries)
