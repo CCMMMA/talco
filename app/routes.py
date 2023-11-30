@@ -107,7 +107,7 @@ def measurements():
                 measurement[column] = getattr(record, column)
 
             measurement["timeseries"] = False
-            if len(record.timeseries.values) > 0:
+            if record.timeseries is not None and len(record.timeseries.values) > 0:
                 measurement["timeseries"] = True
 
             measurements.append(measurement)
