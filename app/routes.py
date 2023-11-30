@@ -101,9 +101,16 @@ def measurements():
         # Get column names dynamically
         columns = [column.key for column in Measurements.__table__.columns]
 
-        # Prepare data in a dictionary format
-        measurements = [{column: getattr(record, column) for column in columns} for record in
-                        measurementsQuery]
+        for record in measurementsQuery:
+            measurement = {}
+            for column in columns:
+                measurement[column] = getattr(record, column)
+
+            measurement["timeseries"] = False
+            if len(record.timeseries.values) > 0:
+                measurement["timeseries"] = True
+
+            measurements.append(measurement)
 
     # Sort array by date
     measurements = sorted(measurements, key=lambda x: x['date'])
@@ -226,19 +233,26 @@ def calculateTimeseries(measurement_id, new_uuid, execution_status, total):
 
 @app.route('/createTimeseries', methods=['POST'])
 def createTimeseries():
+    id = request.args.get('id')
+
     def getTimeseries():
         try:
             with app.app_context():
-                measurements = Measurements.query.all()
+                if id is not None:
+                    measurement = Measurements.query.get(id)
+                    measurements = [measurement] if measurement is not None else []
+                    workers = 1
+                else:
+                    measurements = Measurements.query.all()
+                    workers = multiprocessing.cpu_count()
+
                 measurement_ids = [measurement.id for measurement in measurements]
-                # measurement_ids = measurement_ids[:1]
                 total = len(measurement_ids)
 
                 with manager.Lock():
                     new_uuid = str(uuid.uuid4())
                     execution_status[new_uuid] = {'status': 'Started', 'idx': 0, 'total': total}
 
-                workers = multiprocessing.cpu_count()
                 logger.info(f"workers: {workers}")
                 with ProcessPoolExecutor(max_workers=workers) as executor:
                     futures = [executor.submit(calculateTimeseries, measurement_id, new_uuid, execution_status, total) for measurement_id in measurement_ids]

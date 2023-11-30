@@ -284,7 +284,6 @@
 
                     measurements.forEach((measurement, _) => {
                         const tr = document.createElement('tr');
-                        // let contentLoaded = false;
 
                         tr.addEventListener('mouseover', function() {
                             tr.style.backgroundColor = '#f0f0f0';
@@ -295,65 +294,16 @@
                             tr.style.backgroundColor = ''; // Reset background color
                         });
 
-                        tr.addEventListener('click', function () {
-                            fetch('/getTimeSeries/' + measurement.id)
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error(`HTTP error! Status: ${response.status}`);
-                                }
-                                return response.blob();
-                            })
-                            .then(blob => {
-                                console.log(blob);
-                            })
-                            .catch(error => {
-                                console.error('Error fetching data:', error);
-                            });;
-                        });
-
-                        /*
-                        tr.addEventListener('click', function () {
-                            const existingContent = tr.nextElementSibling;
-
-                            if (tr.querySelector('img') == null) {
-                                if (!contentLoaded) {
-                                    fetch('/getTimeSeries/' + measurement.id)
-                                    .then(response => {
-                                        if (!response.ok) {
-                                            throw new Error(`HTTP error! Status: ${response.status}`);
-                                        }
-                                        return response.blob();
-                                    })
-                                    .then(blob => {
-                                        const imageUrl = URL.createObjectURL(blob);
-
-                                        const imgElement = document.createElement('img');
-                                        imgElement.src = imageUrl;
-
-                                        if (!existingContent) {
-                                            tr.insertAdjacentHTML('afterend', `<tr class="content-row"><td colspan="${Object.keys(measurement).length}">${imgElement.outerHTML}</td></tr>`);
-                                        } else {
-                                            existingContent.innerHTML = `<td colspan="${Object.keys(measurement).length}">${imgElement.outerHTML}</td>`;
-                                        }
-
-                                        contentLoaded = true;
-                                    })
-                                    .catch(error => {
-                                        console.error('Error fetching data:', error);
-                                        alert('Error fetching data. Please try again.');
-                                    });
-                                } else {
-                                    if (existingContent) {
-                                        existingContent.style.display = existingContent.style.display === 'none' ? 'table-row' : 'none';
-                                    }
+                        Object.entries(measurement).forEach(([key, value]) => {
+                            const td = document.createElement('td');
+                            let v = value;
+                            if (key === "timeseries") {
+                                v = '<button class="button" onClick="createTimeseries(\'' + measurement.id + '\')">Load</button>';
+                                if (value === true){
+                                    v = '<button class="button" onClick="getTimeseries(\'' + measurement.id + '\')">View</button>';
                                 }
                             }
-                        });
-                         */
-
-                        Object.values(measurement).forEach(value => {
-                            const td = document.createElement('td');
-                            td.textContent = value;
+                            td.innerHTML = v;
                             tr.appendChild(td);
                         });
                         tbody.appendChild(tr);
@@ -382,8 +332,12 @@
             drawSamples();
         }
 
-        function createTimeseries() {
-            fetch('/createTimeseries', {
+        function createTimeseries(id) {
+            let endpoint = '/createTimeseries';
+            if (id !== undefined) {
+                endpoint += `?id=${id}`
+            }
+            fetch(endpoint, {
                 method: 'POST'
             })
             .then(response => response.json())
@@ -391,6 +345,22 @@
                 updateStatus(data);
             })
             .catch(error => console.error('Error fetching data:', error));
+        }
+
+        function getTimeseries(id) {
+            fetch('/getTimeSeries/' + id)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                console.log(blob);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
         }
 
         draw();
@@ -399,304 +369,3 @@
 </body>
 
 </html>
-
-<!--
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIQUAM</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 20px;
-            text-align: center;
-            background-color: #ecf0f1; /* Light gray background */
-        }
-
-        h1, h2 {
-            color: #3498db;
-        }
-
-        .container-wrapper {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .container-flex {
-            width: 45%;
-            max-width: 600px; /* Adjust the maximum width as needed */
-            margin: 0 auto 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px; /* Adjust the maximum width as needed */
-            margin: 0 auto 20px;
-        }
-
-        .collapsible-header {
-            background-color: #3498db;
-            color: #fff;
-            padding: 10px;
-            cursor: pointer;
-            border: none;
-            text-align: center;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .collapsible-content {
-            display: none;
-            overflow: hidden;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .form-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        label {
-            font-size: 16px;
-            color: #333;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        input[type="file"] {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: calc(100% - 20px); /* Adjust for padding */
-            box-sizing: border-box;
-        }
-
-        button {
-            margin-top: 10px;
-            padding: 12px;
-            background-color: #3498db;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            box-sizing: border-box;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        @media (min-width: 768px) {
-            .container {
-                max-width: 800px; /* Adjust the maximum width for larger screens */
-            }
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        thead {
-            background-color: #3498db; /* Blue background for header */
-            color: #fff; /* White text color for header */
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-    </style>
-</head>
-<body>
-    <h1>AIQUAM</h1>
-
-    <div class="container-wrapper">
-        <div class="container-flex">
-            <button class="collapsible-header" onclick="toggleCollapsible('measurements')">Load Measurements</button>
-            <div class="collapsible-content measurements-content">
-                <div class="form-container">
-                    <form action="/uploadMeasurements" method="post" enctype="multipart/form-data">
-                        <label for="file">Choose a CSV/XLS/XLSX file for the measurements:</label>
-                        <input type="file" name="file" id="file" accept=".csv, .xls" required>
-                        <br>
-                        <button type="submit">Upload</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="container-flex">
-            <button class="collapsible-header" onclick="toggleCollapsible('farms')">Load Farms</button>
-            <div class="collapsible-content farms-content">
-                <div class="form-container">
-                    <form action="/uploadFarms" method="post" enctype="multipart/form-data">
-                        <label for="file">Choose a JSON file for the farms:</label>
-                        <input type="file" name="file" id="file" accept=".json, .geojson" required>
-                        <br>
-                        <button type="submit">Upload</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <button class="container" id="measurementsButton">Show Measurements</button>
-
-    <div id="status"></div>
-
-    <div id="dataContainer"></div>
-
-    <script>
-        function toggleCollapsible(type) {
-            const content = document.querySelector(`.${type}-content`);
-            content.style.display = content.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function updateStatus(data) {
-            document.getElementById('status').innerText = '';
-            Object.keys(data).forEach(function(key) {
-                if (data[key].status !== 'Completed')
-                    document.getElementById('status').innerText += `[${key}] Status: ${data[key].status} ${data[key].idx}/${data[key].total}\n`;
-            });
-        }
-
-        function createTimeseries() {
-            fetch('/createTimeseries', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                updateStatus(data);
-            })
-            .catch(error => console.error('Error fetching data:', error));
-        }
-
-        function checkStatus() {
-            fetch('/get_execution_status')
-                .then(response => response.json())
-                .then(data => {
-                    updateStatus(data);
-                    setTimeout(checkStatus, 30000);
-                });
-        }
-
-        document.getElementById('measurementsButton').addEventListener('click', function() {
-            const dataContainer = document.getElementById('dataContainer');
-            dataContainer.innerHTML = '';  // Clear previous data
-
-            fetch('/measurements')
-                .then(response => response.json())
-                .then(data => {
-                    dataContainer.innerHTML = '<h2>Measurements</h2><br><button class="collapsible-header" onclick="createTimeseries()">Create Timeseries</button></br>';
-
-                    if (data.length > 0) {
-                        const table = document.createElement('table');
-                        const thead = document.createElement('thead');
-                        const tbody = document.createElement('tbody');
-
-                        // Generate table headers
-                        const headerRow = document.createElement('tr');
-                        Object.keys(data[0]).forEach(key => {
-                            const th = document.createElement('th');
-                            th.textContent = key;
-                            headerRow.appendChild(th);
-                        });
-                        thead.appendChild(headerRow);
-
-                        // Generate table rows
-                        data.forEach((record, index) => {
-                            const tr = document.createElement('tr');
-                            let contentLoaded = false;
-
-                            // Add mouseover event listener to change appearance
-                            tr.addEventListener('mouseover', function() {
-                                tr.style.backgroundColor = '#f0f0f0';
-                                tr.style.cursor = 'pointer';
-                            });
-
-                            // Add mouseout event listener to reset appearance
-                            tr.addEventListener('mouseout', function() {
-                                tr.style.backgroundColor = ''; // Reset background color
-                            });
-
-                            tr.addEventListener('click', function () {
-                                const existingContent = tr.nextElementSibling;
-
-                                if (tr.querySelector('img') == null) {
-                                    // Check if content is already loaded
-                                    if (!contentLoaded) {
-                                        // Content is not loaded, fetch and add it
-                                        fetch('/getTimeSeries/' + record.id)
-                                        .then(response => {
-                                            if (!response.ok) {
-                                                throw new Error(`HTTP error! Status: ${response.status}`);
-                                            }
-                                            return response.blob();
-                                        })
-                                        .then(blob => {
-                                            const imageUrl = URL.createObjectURL(blob);
-
-                                            // Create an image element and set its source
-                                            const imgElement = document.createElement('img');
-                                            imgElement.src = imageUrl;
-
-                                            // Check if content is already present
-                                            if (!existingContent) {
-                                                // Content is not present, create and add it
-                                                tr.insertAdjacentHTML('afterend', `<tr class="content-row"><td colspan="${Object.keys(record).length}">${imgElement.outerHTML}</td></tr>`);
-                                            } else {
-                                                // Content is present, update its HTML
-                                                existingContent.innerHTML = `<td colspan="${Object.keys(record).length}">${imgElement.outerHTML}</td>`;
-                                            }
-
-                                            // Show the content
-                                            contentLoaded = true;
-                                        })
-                                        .catch(error => {
-                                            console.error('Error fetching data:', error);
-                                            alert('Error fetching data. Please try again.');
-                                        });
-                                    } else {
-                                        // Content is loaded, toggle its visibility
-                                        if (existingContent) {
-                                            existingContent.style.display = existingContent.style.display === 'none' ? 'table-row' : 'none';
-                                        }
-                                    }
-                                }
-                            });
-
-                            Object.values(record).forEach(value => {
-                                const td = document.createElement('td');
-                                td.textContent = value;
-                                tr.appendChild(td);
-                            });
-                            tbody.appendChild(tr);
-                        });
-
-                        table.appendChild(thead);
-                        table.appendChild(tbody);
-                        dataContainer.appendChild(table);
-                    } else {
-                        dataContainer.innerHTML += '<p>No data available.</p>';
-                    }
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
-
-        checkStatus();
-    </script>
-</body>
-</html>
--->
