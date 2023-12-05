@@ -325,8 +325,14 @@
                             let v = value;
                             if (key === "timeseries") {
                                 v = '<button class="button" onClick="createTimeseries(\'' + measurement.id + '\')">Load</button>';
-                                if (value === true){
+                                if (value){
                                     v = '<button class="button" onClick="getTimeseries(this, \'' + measurement.id + '\')">View</button>';
+                                }
+                            } else if (key === "to_consider") {
+                                if (value) {
+                                    v = '<input type="checkbox" value="' + measurement.id + '" checked="true" onClick="considerSample(this)"/><br/>';
+                                } else {
+                                    v = '<input type="checkbox" value="' + measurement.id + '" onClick="considerSample(this)"/><br/>';
                                 }
                             }
                             td.innerHTML = v;
@@ -432,6 +438,24 @@
                     chartContainer.style.display = "none";
                 }
             }
+        }
+
+        function considerSample(checkbox) {
+            fetch('/considerSample/' + checkbox.value, {
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "value": checkbox.checked
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => console.error('[considerSample] Error fetching data:', error));
         }
 
         draw();

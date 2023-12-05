@@ -14,6 +14,7 @@ class Measurements(db.Model):
     outcome = db.Column(db.Integer)
     bacteria = db.Column(db.String(64))
     unit = db.Column(db.String(16))
+    to_consider = db.Column(db.Boolean, default=False, nullable=False)
     farm = db.relationship('Farms', backref='measurement', uselist=False)
     timeseries = db.relationship('Timeseries', uselist=False)
 

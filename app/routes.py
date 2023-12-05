@@ -11,7 +11,6 @@ import pandas as pd
 import re
 import json
 import uuid
-import matplotlib.pyplot as plt
 import matplotlib
 import os
 import multiprocessing
@@ -117,6 +116,19 @@ def measurements():
     return jsonify(measurements)
 
 
+@app.route('/considerSample/<id>', methods=['POST'])
+def considerSample(id: str):
+    data = request.json
+    existing_record = Measurements.query.get(id)
+    if existing_record:
+        existing_record.to_consider = data['value']
+        db.session.commit()
+
+        return jsonify({'message': 'OK'}), 200
+    else:
+        return jsonify({'message': 'Upload first farms file!!'}), 500
+
+
 @app.route('/uploadFarms', methods=['POST'])
 def uploadFarms():
     if 'file' not in request.files:
@@ -146,7 +158,7 @@ def uploadFarms():
                 )
                 db.session.add(record)
 
-        # Commit changes to the database
+    # Commit changes to the database
     db.session.commit()
 
     return jsonify({'message': 'File uploaded successfully'}), 200
