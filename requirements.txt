@@ -10,3 +10,4 @@ openpyxl
 shapely
 netCDF4
 matplotlib
+uwsgi
