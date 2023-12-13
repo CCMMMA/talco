@@ -22,7 +22,7 @@
           crossorigin="anonymous">
 
     <!-- CanvasJS -->
-    <script src="https://cdn.canvasjs.com/canvasjs.min.js">></script>
+    <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
 
     <style>
         body {
@@ -67,9 +67,9 @@
           width: 120px;
           height: 120px;
           margin: -76px 0 0 -76px;
-          border: 16px solid #191e36;
+          border: 16px solid white;
           border-radius: 50%;
-          border-top: 16px solid #dbca34;
+          border-top: 16px solid #3498db;
           -webkit-animation: spin 2s linear infinite;
           animation: spin 2s linear infinite;
             display: none;
@@ -297,6 +297,8 @@
         }
 
         function drawSamples() {
+            loader.style.display= "block";
+
             fetch('/measurements')
             .then(response => response.json())
             .then(data => {
@@ -355,6 +357,8 @@
                 } else {
                     dataContainer.innerHTML += '<p>No data available.</p>';
                 }
+
+                loader.style.display= "none";
             })
             .catch(error => console.error('[drawSamples] Error fetching data:', error));
         }
