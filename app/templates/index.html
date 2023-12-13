@@ -326,7 +326,7 @@
                             if (key === "timeseries") {
                                 v = '<button class="button" onClick="createTimeseries(\'' + measurement.id + '\')">Load</button>';
                                 if (value){
-                                    v = '<button class="button" onClick="getTimeseries(this, \'' + measurement.id + '\')">View</button>';
+                                    v = '<div style="display: flex;"><button class="button" onClick="getTimeseries(this, \'' + measurement.id + '\')">View</button><button class="button"  onClick="createTimeseries(\'' + measurement.id + '\', true)"><span>&#x21bb;</span></button></div>';
                                 }
                             } else if (key === "to_consider") {
                                 if (value) {
@@ -364,13 +364,25 @@
             drawSamples();
         }
 
-        function createTimeseries(id) {
+        function createTimeseries(id, reload) {
             let endpoint = '/createTimeseries';
+            let body = {};
+
             if (id !== undefined) {
                 endpoint += `?id=${id}`
             }
+            if (reload !== undefined) {
+                body = {
+                    "reload": reload
+                }
+            }
             fetch(endpoint, {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
             })
             .then(response => response.json())
             .then(data => {

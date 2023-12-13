@@ -186,7 +186,7 @@ def get_execution_status():
     return jsonify(execution_status_dict)
 
 
-def calculateTimeseries(measurement_id, new_uuid, execution_status, total):
+def calculateTimeseries(measurement_id, new_uuid, execution_status, total, reload=False):
     try:
         process_id = os.getpid()
 
@@ -205,7 +205,7 @@ def calculateTimeseries(measurement_id, new_uuid, execution_status, total):
             index_min_lat, index_max_lat, index_min_long, index_max_long = get_index_lat_long(min_lat, max_lat,
                                                                                               min_long, max_long)
 
-            if measurement.timeseries is None or len(measurement.timeseries.values) != Config.hours + 1:
+            if measurement.timeseries is None or len(measurement.timeseries.values) != Config.hours + 1 or reload:
                 data = []
                 measurement_date = datetime.combine(measurement.date, time(10, 00, 0))
                 for i in range(0, Config.hours + 1):
@@ -247,6 +247,11 @@ def calculateTimeseries(measurement_id, new_uuid, execution_status, total):
 def createTimeseries():
     id = request.args.get('id')
 
+    data = request.json
+    reload = False
+    if 'reload' in data:
+        reload = data['reload']
+
     def getTimeseries():
         try:
             with app.app_context():
@@ -267,7 +272,7 @@ def createTimeseries():
 
                 logger.info(f"workers: {workers}")
                 with ProcessPoolExecutor(max_workers=workers) as executor:
-                    futures = [executor.submit(calculateTimeseries, measurement_id, new_uuid, execution_status, total) for measurement_id in measurement_ids]
+                    futures = [executor.submit(calculateTimeseries, measurement_id, new_uuid, execution_status, total, reload) for measurement_id in measurement_ids]
                     for future in futures:
                         future.result()
 
