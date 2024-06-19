@@ -3,7 +3,7 @@ from app import db
 
 class Measurements(db.Model):
     __tablename__ = 'measurements'
-    id = db.Column(db.String(16), primary_key=True)
+    id = db.Column(db.String(32), primary_key=True)
     year = db.Column(db.Integer)
     date = db.Column(db.Date)
     site_code = db.Column(db.Integer, db.ForeignKey('farms.site_code'))

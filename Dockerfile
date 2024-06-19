@@ -7,8 +7,8 @@ RUN pip install -r requirements.txt
 
 COPY app/ app/
 COPY wsgi.py .
+COPY config.json .
 COPY config.py .
-COPY .flaskenv .
 COPY talco.ini .
 COPY run.sh .
 RUN chmod u+x run.sh

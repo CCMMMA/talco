@@ -1,0 +1,12 @@
+{
+    "SECRET_KEY": "password",
+    "DATABASE_URL": "postgresql://user:password@postgres:5432/talco",
+    "WCM3_URL": "/storage/ccmmma/prometeo/data/opendap/wcm3/d03/archive/",
+    "hours": 72,
+    "delta_lat": 0.0013659036107000276,
+    "delta_long": 0.0017988219935232432,
+    "wcm3_min_lat": 39.8,
+    "wcm3_min_long": 13.1,
+    "species": ["MYTILUS GALLOPROVINCIALIS MITILO - COZZA"],
+    "bacteria": ["Escherichia coli"]
+}

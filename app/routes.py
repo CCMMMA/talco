@@ -7,6 +7,7 @@ from shapely.geometry import Polygon
 from app.utils import get_index_lat_long, getConc
 from datetime import timedelta, datetime, time
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import numpy as np
 import pandas as pd
 import re
 import json
@@ -29,6 +30,15 @@ def index():
 
 @app.route('/uploadMeasurements', methods=['POST'])
 def uploadMeasurements():
+    def extract_outcome(outcome):
+        if isinstance(outcome, str):
+            if outcome[0].isdigit():
+                return int(re.sub(r'\D', '', outcome))
+            else:
+                outcome = None
+        return outcome
+
+
     if 'file' not in request.files:
         return jsonify({'message': 'No file'}), 500
 
@@ -37,43 +47,51 @@ def uploadMeasurements():
     if file.filename == '':
         return jsonify({'message': 'No selected file'}), 500
 
-    if file:
-        farmsQuery = Farms.query.all()
+    if not file:
+        return jsonify({'message': 'No file uploaded'}), 400
 
-        if farmsQuery:
-            # Read the file in memory
-            file_data = file.read()
+    farmsQuery = Farms.query.all()
+    if not farmsQuery:
+        return jsonify({'message': 'Upload first farms file!!'}), 400
 
-            # Detect file type (CSV or Excel) and process accordingly
-            if file.filename.endswith('.csv'):
-                csv_data = file_data.decode('utf-8')
-                df = pd.read_csv(BytesIO(csv_data))
-            elif file.filename.endswith(('.xls', '.xlsx')):
-                df = pd.read_excel(BytesIO(file_data))
-            else:
-                return jsonify({'message': 'Unsupported file format'}), 500
+    try:
+        # Read the file in memory
+        file_data = file.read()
 
-            # Parse the DataFrame and save data to the database
-            for _, row in df.iterrows():
-                # Check if a record with the same id value exists
-                id = row['NUMERO SCHEDA']
-                existing_record = Measurements.query.get(id)
+        # Detect file type (CSV or Excel) and process accordingly
+        if file.filename.endswith('.csv'):
+            csv_data = file_data.decode('utf-8')
+            df = pd.read_csv(BytesIO(csv_data))
+        elif file.filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(BytesIO(file_data))
+        else:
+            return jsonify({'message': 'Unsupported file format'}), 400
 
-                outcome = row['ESITO_pulito']
-                if isinstance(outcome, str):
-                    outcome = int(re.sub(r'\D', '', outcome))
+        # Parse the DataFrame and save data to the database
+        for _, row in df.iterrows():
+            # Check if a record with the same id value exists
+            id = row['NUMERO SCHEDA']
+            existing_record = Measurements.query.get(id)
+            outcome = extract_outcome(row['ESITO'])
+            site = row['SITO']
+            if isinstance(site, str):
+                site = site.strip()
+
+            if row['PARAMETRO/ANALITA'] in Config.bacteria and outcome is not None:
                 if existing_record:
                     # If a record exists, update it with the maximum outcome value
                     existing_record.outcome = max(existing_record.outcome, outcome)
                 else:
                     # If no record exists, create a new one
-                    if 'COZZA' in row['MATRICE'] and Farms.query.filter_by(site_code=int(row['Codice SITO'])).first():
+                    site = Farms.query.filter_by(name=site).first()
+
+                    if row['MATRICE'] in Config.species and site:
                         record = Measurements(
                             id=id,
                             year=int(row['ANNO ACCETTAZIONE']),
                             date=row['DATA PRELIEVO'] + timedelta(hours=10),
-                            site_code=int(row['Codice SITO']),
-                            site_name=row['SITO'],
+                            site_code=site.site_code,
+                            site_name=site.name,
                             latitude=float(row['LATITUDINE']),
                             longitude=float(row['LONGITUDINE']),
                             animal=row['MATRICE'],
@@ -83,12 +101,12 @@ def uploadMeasurements():
                         )
                         db.session.add(record)
 
-            # Commit changes to the database
-            db.session.commit()
-
-            return jsonify({'message': 'File uploaded successfully'}), 200
-        else:
-            return jsonify({'message': 'Upload first farms file!!'}), 500
+        # Commit changes to the database
+        db.session.commit()
+        return jsonify({'message': 'File uploaded successfully'}), 200
+    
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
 
 
 @app.route('/measurements', methods=['GET'])
@@ -152,7 +170,7 @@ def uploadFarms():
             if not existing_record:
                 record = Farms(
                     site_code=site_code,
-                    name=farm['properties']['DENOMINAZI'] + '-' + farm['properties']['Comune'],
+                    name=farm['properties']['DENOMINAZI'].upper(),
                     bbox=farm['bbox'],
                     coordinates=farm['geometry']['coordinates']
                 )
