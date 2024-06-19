@@ -334,7 +334,7 @@ def getTimeSeries():
     csv_path = os.path.join('/tmp', unique_filename)
     df.to_csv(csv_path, index=False)
     
-    return send_file(csv_path, as_attachment=True, attachment_filename='timeseries_data.csv')
+    return send_file(csv_path, as_attachment=True, download_name='timeseries_data.csv')
 
 
 @app.route('/getTimeSeries/<id>', methods=['GET'])
