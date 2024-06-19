@@ -306,8 +306,37 @@ def createTimeseries():
     return jsonify(execution_status_dict)
 
 
+@app.route('/getTimeSeries', methods=['GET'])
+def getTimeSeries():
+    measurements = Measurements.query.all()
+    timeseries_list = []
+
+    for measurement in measurements:
+        if measurement.timeseries:
+            values = measurement.timeseries.values
+
+            values_list = []
+            for entry in values:
+                values_list.append(entry['value'])
+            values_list = values_list[::-1]
+
+            values_list.insert(0, measurement.date)
+            values_list.append(measurement.outcome)
+
+            timeseries_list.append(values_list)
+
+    columns = ['date'] + [str(i) for i in range(Config.hours, -1, -1)] + ['target']
+    df = pd.DataFrame(timeseries_list, columns=columns)
+
+    unique_filename = f'timeseries_data_{uuid.uuid4().hex}.csv'
+    csv_path = os.path.join('/tmp', unique_filename)
+    df.to_csv(csv_path, index=False)
+    
+    return send_file(csv_path, as_attachment=True, attachment_filename='timeseries_data.csv')
+
+
 @app.route('/getTimeSeries/<id>', methods=['GET'])
-def getTimeSeries(id: int):
+def getTimeSeriesById(id):
     measurement = Measurements.query.get(id)
 
     def get_timeseries_data():
