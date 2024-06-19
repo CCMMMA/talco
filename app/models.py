@@ -29,5 +29,5 @@ class Farms(db.Model):
 
 class Timeseries(db.Model):
     __tablename__ = 'timeseries'
-    id = db.Column(db.String(16), db.ForeignKey('measurements.id'), primary_key=True)
+    id = db.Column(db.String(32), db.ForeignKey('measurements.id'), primary_key=True)
     values = db.Column(db.JSON)
