@@ -76,6 +76,8 @@ def uploadMeasurements():
             site = row['SITO']
             if isinstance(site, str):
                 site = site.strip()
+            else:
+                site = ""
 
             if row['PARAMETRO/ANALITA'] in Config.bacteria and outcome is not None:
                 if existing_record:

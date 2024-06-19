@@ -10,7 +10,7 @@ class Config(object):
         config_data = json.load(config_file)
 
     SECRET_KEY = config_data.get('SECRET_KEY', 'password')
-    SQLALCHEMY_DATABASE_URI = config_data.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///' + os.path.join(basedir, 'app.db'))
+    SQLALCHEMY_DATABASE_URI = config_data.get('DATABASE_URL', 'sqlite:///' + os.path.join(basedir, 'app.db'))
     SQLALCHEMY_TRACK_MODIFICATIONS = config_data.get('SQLALCHEMY_TRACK_MODIFICATIONS', False)
 
     WCM3_URL = config_data.get('WCM3_URL')
