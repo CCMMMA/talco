@@ -15,6 +15,7 @@ import uuid
 import matplotlib
 import os
 import multiprocessing
+import pytz
 
 
 matplotlib.use('agg')
@@ -228,9 +229,13 @@ def calculateTimeseries(measurement_id, new_uuid, execution_status, total, reloa
             if measurement.timeseries is None or len(measurement.timeseries.values) != Config.hours + 1 or reload:
                 data = []
                 measurement_date = datetime.combine(measurement.date, time(10, 00, 0))
+                rome_tz = pytz.timezone('Europe/Rome')
+                localized_date = rome_tz.localize(measurement_date)
+                utc_date = localized_date.astimezone(pytz.utc)
+
                 for i in range(0, Config.hours + 1):
                     logger.info(f'[{process_id}] [{measurement.id}] Processing step {i}/{Config.hours}')
-                    reference_hour = measurement_date - timedelta(hours=i)
+                    reference_hour = utc_date - timedelta(hours=i)
                     formatted_hour = reference_hour.strftime("%Y%m%dZ%H%M")
 
                     year = str(reference_hour.year)
@@ -308,8 +313,8 @@ def createTimeseries():
     return jsonify(execution_status_dict)
 
 
-@app.route('/getTimeSeries', methods=['GET'])
-def getTimeSeries():
+@app.route('/getDataset', methods=['GET'])
+def getDataset():
     measurements = Measurements.query.all()
     timeseries_list = []
 
@@ -355,4 +360,4 @@ def getTimeSeriesById(id):
 
     timeseries = get_timeseries_data()
 
-    return jsonify(timeseries)
+    return jsonify(timeseries[::-1])
