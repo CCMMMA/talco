@@ -223,8 +223,8 @@ def calculateTimeseries(measurement_id, new_uuid, execution_status, total, reloa
             coordinates = measurement.farm.coordinates[0][0]
             area_poly = Polygon(coordinates)
 
-            index_min_lat, index_max_lat, index_min_long, index_max_long = get_index_lat_long(min_lat, max_lat,
-                                                                                              min_long, max_long)
+            min_lon, min_lat, max_lon, max_lat = area_poly.bounds
+            index_min_lat, index_max_lat, index_min_long, index_max_long = get_index_lat_long(min_lat, max_lat, min_lon, max_lon)
 
             if measurement.timeseries is None or len(measurement.timeseries.values) != Config.hours + 1 or reload:
                 data = []
@@ -244,7 +244,7 @@ def calculateTimeseries(measurement_id, new_uuid, execution_status, total, reloa
 
                     url = f'{Config.WCM3_URL}{year}/{month}/{day}/wcm3_d03_{formatted_hour}.nc'
 
-                    value = getConc(url, index_min_lat, index_min_long, index_max_lat, index_max_long, area_poly)
+                    value = getConc(url, index_min_lat, index_min_long, index_max_lat, index_max_long)
 
                     data.append({
                         "time": reference_hour.isoformat(),
