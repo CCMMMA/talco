@@ -319,7 +319,16 @@ def getDataset():
     timeseries_list = []
 
     for measurement in measurements:
-        if measurement.timeseries:
+        if measurement.timeseries and measurement.to_consider:
+            target = 0
+            outcome = measurement.outcome
+            if 67 < outcome <= 230:
+                target = 1
+            elif 230 < outcome <= 4600:
+                target = 2
+            elif outcome > 4600:
+                target = 3
+
             values = measurement.timeseries.values
 
             values_list = []
@@ -328,7 +337,7 @@ def getDataset():
             values_list = values_list[::-1]
 
             values_list.insert(0, measurement.date)
-            values_list.append(measurement.outcome)
+            values_list.append(target)
 
             timeseries_list.append(values_list)
 
