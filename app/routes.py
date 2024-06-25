@@ -89,10 +89,15 @@ def uploadMeasurements():
                     site = Farms.query.filter_by(name=site).first()
 
                     if row['MATRICE'] in Config.species and site:
+                        local_tz = pytz.timezone('Europe/Rome')
+                        dt_local = row['DATA PRELIEVO'] + timedelta(hours=10)
+                        dt_local = local_tz.localize(dt_local)
+                        dt_utc = dt_local.astimezone(pytz.utc)
+
                         record = Measurements(
                             id=id,
                             year=int(row['ANNO ACCETTAZIONE']),
-                            date=row['DATA PRELIEVO'] + timedelta(hours=10),
+                            date=dt_utc,
                             site_code=site.site_code,
                             site_name=site.name,
                             latitude=float(row['LATITUDINE']),
@@ -343,6 +348,8 @@ def getDataset():
 
     columns = ['date'] + [str(i) for i in range(Config.hours, -1, -1)] + ['target']
     df = pd.DataFrame(timeseries_list, columns=columns)
+
+    print(df['date'])
 
     unique_filename = f'timeseries_data_{uuid.uuid4().hex}.csv'
     csv_path = os.path.join('/tmp', unique_filename)

@@ -5,7 +5,7 @@ class Measurements(db.Model):
     __tablename__ = 'measurements'
     id = db.Column(db.String(32), primary_key=True)
     year = db.Column(db.Integer)
-    date = db.Column(db.Date)
+    date = db.Column(db.DateTime)
     site_code = db.Column(db.Integer, db.ForeignKey('farms.site_code'))
     site_name = db.Column(db.String(128))
     latitude = db.Column(db.Float)
