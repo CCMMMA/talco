@@ -22,6 +22,6 @@ def getConc(url, index_min_lat, index_min_long, index_max_lat, index_max_long):
         value = sum(sum(concentration))
     except Exception as e:
         print(e)
-        value = 0
+        value = -100
 
     return value

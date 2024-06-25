@@ -319,7 +319,7 @@ def getDataset():
     timeseries_list = []
 
     for measurement in measurements:
-        if measurement.timeseries and measurement.to_consider:
+        if measurement.timeseries:
             target = 0
             outcome = measurement.outcome
             if 67 < outcome <= 230:
