@@ -19,13 +19,7 @@ def getConc(url, index_min_lat, index_min_long, index_max_lat, index_max_long):
         lon_indices = range(index_min_long - 2, index_max_long + 2)
         concentration = dataset['conc'][0, 0, lat_indices, lon_indices]
 
-        values = []
-        for i in range(0, len(concentration)):
-            for j in range(0, len(concentration[0])):
-                current_value = concentration[i][j]
-                values.append(current_value)
-
-        value = sum(values)
+        value = sum(sum(concentration))
     except Exception as e:
         print(e)
         value = 0
