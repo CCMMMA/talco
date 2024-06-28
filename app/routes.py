@@ -349,8 +349,6 @@ def getDataset():
     columns = ['date'] + [str(i) for i in range(Config.hours, -1, -1)] + ['target']
     df = pd.DataFrame(timeseries_list, columns=columns)
 
-    print(df['date'])
-
     unique_filename = f'timeseries_data_{uuid.uuid4().hex}.csv'
     csv_path = os.path.join('/tmp', unique_filename)
     df.to_csv(csv_path, index=False)
