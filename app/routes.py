@@ -324,10 +324,10 @@ def getDataset():
     timeseries_list = []
 
     for measurement in measurements:
-        if measurement.timeseries:
+        if measurement.timeseries and measurement.to_consider:
             target = 0
             outcome = measurement.outcome
-            if 67 < outcome <= 230:
+            if 78 < outcome <= 230:
                 target = 1
             elif 230 < outcome <= 4600:
                 target = 2
